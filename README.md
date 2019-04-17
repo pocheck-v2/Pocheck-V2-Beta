@@ -13,7 +13,11 @@ ID : intern
 PW : 3708
 ```
 
-## DataSet
+## Training Data
+
+## Pre-trained models
+| Model name      | LFW accuracy | Training dataset | Architecture |
+|-----------------|--------------|------------------|-------------|
 
 ## Data Alignment
 
