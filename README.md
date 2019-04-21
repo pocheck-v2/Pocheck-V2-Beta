@@ -13,6 +13,13 @@ ID : intern
 PW : 3708
 ```
 
+## Version
+| Requiremnts      | Version |
+|-----------------|--------------|
+|tensorflow-gpu|1.8|
+|cudatoolkit|9.0|
+|cudnn|7.3.1|
+
 ## Training Data
 
 ## Pre-trained models
