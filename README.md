@@ -45,11 +45,14 @@ ffmpeg -f v4l2 -s 640x480 -r 30 -i /dev/video0 http://localhost:8090/feed1.ffm
 ```
  5. Here are the addresses you can check:
 ```
-rtsp://ipaddress/test1.mp4
+rtsp://ip_address/test1.mp4
 ```
 
 ## Training Data
-- The Asian Face Age Dataset (AFAD)[http://afad-dataset.github.io/]
+- VGGFace2 A large scale image dataset for face recognition<br>
+[http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/]
+- The Asian Face Age Dataset (AFAD)<br>
+[http://afad-dataset.github.io/]
 ## Pre-trained models
 | Model name      | LFW accuracy | Training dataset | Architecture |
 |-----------------|--------------|------------------|-------------|
