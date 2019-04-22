@@ -17,15 +17,34 @@ PW : 3708
 | Requiremnts      | Version |
 |-----------------|--------------|
 |tensorflow-gpu| 1.8|
-|cudatoolkit| 9.0|
+|cuda-tool-kit| 9.0|
 |cudnn| 7.3.1|
 |python| 3.5.6|
-
 
 ## Webcam - ffmpeg
 [https://twinw.tistory.com/196]
 ```
 ffmpeg -f alsa -ac 2 -i hw:0 -f v4l2 -s 1920x1080 -i /dev/video0 -t 20 video.mpg
+```
+
+## RTSP
+- Real Time Streaming Protocal
+- ffserver.conf
+ 1. Install the build package
+```
+sudo apt-get install ffmpeg
+```
+ 2. Web streaming will be tested using ffmpeg, a video recording program, and ffserver, a web streaming server.
+ 3. Run ffserver.
+```
+ffserver -f ffserver.conf &
+ 4. Start the stream using ffmpeg.
+```
+ffmpeg -f v4l2 -s 640x480 -r 30 -i /dev/video0 http://localhost:8090/feed1.ffm
+```
+ 5. Here are the addresses you can check:
+```
+rtsp://ipaddress/test1.mp4
 ```
 
 ## Training Data
