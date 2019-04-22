@@ -36,8 +36,9 @@ ffmpeg -f alsa -ac 2 -i hw:0 -f v4l2 -s 1920x1080 -i /dev/video0 -t 20 video.mpg
 ## Data Alignment
 
 ## Paper
-- [1] Research Trends ofr Deep Learning-Based High-Performance Face Recognition Technology; [https://ettrends.etri.re.kr/ettrends/172/0905172005/33-4_43-53.pdf]<br>
+- [1] Research Trends ofr Deep Learning-Based High-Performance Face Recognition Technology;<br>
+[https://ettrends.etri.re.kr/ettrends/172/0905172005/33-4_43-53.pdf]<br>
 - [2] One-shot Online Learning for Joint Bayesian Model-based
-Face Recognition; Hanock Kwak, Chung-Yeon Lee, Beom-Jin Lee, Byoung-Tak Zhang[https://bi.snu.ac.kr/Publications/Conferences/Domestic/KIISE2015W_KwakHN.pdf]<br>
-- [3] Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Networks; Kaipeng Zhang, Zhanpeng Zhang, Zhifeng Li, Yu Qiao[https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html]<br>
-- [4] The IEEE Conference on Computer Vision and Pattern Recognition; Zhenxing Niu, Mo Zhou, Le Wang, Xinbo Gao, Gang Hua[https://www.cv-foundation.org/openaccess/content_cvpr_2016/html/Niu_Ordinal_Regression_With_CVPR_2016_paper.html]
+Face Recognition; Hanock Kwak, Chung-Yeon Lee, Beom-Jin Lee, Byoung-Tak Zhang<br>[https://bi.snu.ac.kr/Publications/Conferences/Domestic/KIISE2015W_KwakHN.pdf]<br>
+- [3] Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Networks; Kaipeng Zhang, Zhanpeng Zhang, Zhifeng Li, Yu Qiao<br>[https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html]<br>
+- [4] The IEEE Conference on Computer Vision and Pattern Recognition; Zhenxing Niu, Mo Zhou, Le Wang, Xinbo Gao, Gang Hua<br>[https://www.cv-foundation.org/openaccess/content_cvpr_2016/html/Niu_Ordinal_Regression_With_CVPR_2016_paper.html]
