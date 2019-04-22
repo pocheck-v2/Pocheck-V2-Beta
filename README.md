@@ -23,6 +23,7 @@ PW : 3708
 
 
 ## Webcam - ffmpeg
+[https://twinw.tistory.com/196]
 ```
 ffmpeg -f alsa -ac 2 -i hw:0 -f v4l2 -s 1920x1080 -i /dev/video0 -t 20 video.mpg
 ```
