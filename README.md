@@ -38,6 +38,7 @@ sudo apt-get install ffmpeg
  3. Run ffserver.
 ```
 ffserver -f ffserver.conf &
+```
  4. Start the stream using ffmpeg.
 ```
 ffmpeg -f v4l2 -s 640x480 -r 30 -i /dev/video0 http://localhost:8090/feed1.ffm
