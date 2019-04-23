@@ -17,10 +17,10 @@ PW : 3708
 ## Version
 | Requiremnts      | Version |
 |-----------------|--------------|
-|tensorflow-gpu| 1.8 |
-|cuda-tool-kit| 9.0 |
-|cudnn| 7.3.1 |
-|python| 3.5.6 |
+|tensorflow-gpu|1.8|
+|cuda-tool-kit|9.0|
+|cudnn|7.3.1|
+|python|3.5.6|
 
 ## Webcam - ffmpeg
 - Image Capture and Video Web Streaming using a USB camera<br>[https://twinw.tistory.com/196]
