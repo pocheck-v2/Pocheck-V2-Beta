@@ -58,7 +58,7 @@ Pirl server address for downloading VggFace dataset<br>
 - The Asian Face Age Dataset (AFAD)<br>
 [http://afad-dataset.github.io/]
 
-## Training Data
+## Preprocessing
 Gender and Race Classification with Face Images<br>
 [https://github.com/wondonghyeon/face-classification]<br>
 
