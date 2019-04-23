@@ -53,9 +53,15 @@ rtsp://ip_address/test1.mp4
 ## Training Data
 - VGGFace2 A large scale image dataset for face recognition<br>
 [http://www.robots.ox.ac.uk/~vgg/data/vgg_face2/]<br>
-Pirl server address for downloading VggFace dataset<br>[http://141.223.122.56/vggface2_train.tar.gz]
+Pirl server address for downloading VggFace dataset<br>
+[http://141.223.122.56/vggface2_train.tar.gz]<br>
 - The Asian Face Age Dataset (AFAD)<br>
 [http://afad-dataset.github.io/]
+
+## Preprocessing
+Gender and Race Classification with Face Images<br>
+[https://github.com/wondonghyeon/face-classification]<br>
+
 ## Pre-trained models
 | Model name      | LFW accuracy | Training dataset | Architecture |
 |-----------------|--------------|------------------|-------------|
