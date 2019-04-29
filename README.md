@@ -3,8 +3,9 @@
 ## News
 | Date     | Update |
 |----------|--------|
-| 2019-04-17 | For check v1 fork |
+| 2019-04-17 | For PoCheck v1 fork |
 | 2019-04-22 | ffserver for streaming service |
+| 2019-04-24 | We used the Gender and Race Classification with Face Images model to distinguish Asians data from the Vggface2 dataset. |
  
 ## Pocheck Server
 ```
