@@ -73,7 +73,12 @@ Gender and Race Classification with Face Images<br>
 - [1] Research Trends ofr Deep Learning-Based High-Performance Face Recognition Technology;<br>
 [https://ettrends.etri.re.kr/ettrends/172/0905172005/33-4_43-53.pdf]<br>
 - [2] One-shot Online Learning for Joint Bayesian Model-based
+<<<<<<< HEAD
 Face Recognition; Hanock Kwak, Chung-Yeon Lee, Beom-Jin Lee, Byoung-Tak Zhang<br>[https://bi.snu.ac.kr/Publications/Conferences/Domestic/KIISE2015W_KwakHN.pdf]<br>[https://github.com/cyh24/Joint-Bayesian]<br>[https://onedrive.live.com/?authkey=%21AHC4sGY3p8_xNAA&id=D472C693301B900F%21109&cid=D472C693301B900F]
+=======
+Face Recognition; Hanock Kwak, Chung-Yeon Lee, Beom-Jin Lee, Byoung-Tak Zhang<br>[https://bi.snu.ac.kr/Publications/Conferences/Domestic/KIISE2015W_KwakHN.pdf]<br>
+[https://github.com/cyh24/Joint-Bayesian]<br>
+>>>>>>> 54d5f3b950abf80bf943143d22e512a0a962be2c
 - [3] Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Networks; Kaipeng Zhang, Zhanpeng Zhang, Zhifeng Li, Yu Qiao<br>[https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html]<br>
 - [4] The IEEE Conference on Computer Vision and Pattern Recognition; Zhenxing Niu, Mo Zhou, Le Wang, Xinbo Gao, Gang Hua<br>[https://cv-foundation.org/openaccess/content_cvpr_2016/html/Niu_Ordinal_Regression_With_CVPR_2016_paper.html]
 - [5] How far are we from solving the 2D & 3D Face Alignment problem? (and a dataset of 230,000 3D facial landmarks)<br>[https://www.adrianbulat.com/face-alignment]
