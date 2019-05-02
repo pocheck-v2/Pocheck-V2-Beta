@@ -1,0 +1,11 @@
+.booth {
+    width:400px;
+    background:#ccc;
+    border:10px solid #ddd;
+    margin:0 auto;
+}
+
+#canvas {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+}

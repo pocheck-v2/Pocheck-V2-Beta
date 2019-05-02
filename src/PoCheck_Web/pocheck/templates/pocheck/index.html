@@ -1,5 +1,6 @@
-{% load staticfiles %}
 <!DOCTYPE html>
+{% load static %}
+{% load staticfiles %}
 <html lang="en">
 
 <head>
@@ -36,9 +37,9 @@
     <div class="container">
       <div class="screen">
                   <!-- Demo image for screen mockup, you can put an image here, some HTML, an animation, video, or anything else! -->
-        <img src='{% static "pocheck/img/logo/logo.jpg" %}' width = "80" class="img-fluid" alt="">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top"> <img src='{% static "pocheck/img/logo/logo.jpg" %}' width = "80" class="img-fluid" alt=""></a>
       </div>
-      <a class="navbar-brand js-scroll-trigger" href="#page-top">POCHECK</a>
+      <!-- <a class="navbar-brand js-scroll-trigger" href="#page-top">POCHECK</a> -->
 
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         Menu
@@ -66,7 +67,7 @@
         <div class="col-lg-7 my-auto">
           <div class="header-content mx-auto">
             <h1 class="mb-5">POCHECK는 ~~한 프로그램입니다.</h1>
-            <a href="#download" class="btn btn-outline btn-xl js-scroll-trigger">사용하기</a>
+            <a href="#play" class="btn btn-outline btn-xl js-scroll-trigger">Play POCHECK</a>
           </div>
         </div>
         <div class="col-lg-5 my-auto">
@@ -92,12 +93,9 @@
     <div class="container">
       <div class="row">
         <div class="col-md-8 mx-auto">
-          <h2 class="section-heading">Play POCHECK</h2>
-          <p>Our app is available on any mobile device! Download now to get started!</p>
-          <div class="badges">
-            <a class="badge-link" href="#"><img src='{% static "pocheck/img/google-play-badge.svg" %}' alt=""></a>
-            <a class="badge-link" href="#"><img src='{% static "pocheck/img/app-store-badge.svg" %}' alt=""></a>
-          </div>
+          <h2 class="section-heading">시연 바로가기</h2>
+          <p>아이콘을 누르면 실행됩니다.</p>
+          <a class="badge-link" href="{% url 'pocheck:play' %}"><img src='{% static "pocheck/img/facial-recognition.png" %}' width = "150" alt=""></a>
         </div>
       </div>
     </div>
