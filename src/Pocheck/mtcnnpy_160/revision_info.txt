@@ -1,0 +1,7 @@
+arguments: src/align/align_dataset_mtcnn.py /home/pirl/facenet/datasets/image/raw /home/pirl/facenet/datasets/image/mtcnnpy_160 --image_size 160 --margin 32 --random_order --gpu_memory_fraction 0.25
+--------------------
+tensorflow version: 1.8.0
+--------------------
+git hash: b'096ed770f163957c1e56efa7feeb194773920f6e'
+--------------------
+b'diff --git a/requirements.txt b/requirements.txt\nindex b7418c9..712c13a 100644\n--- a/requirements.txt\n+++ b/requirements.txt\n@@ -1,4 +1,3 @@\n-tensorflow==1.7\n scipy\n scikit-learn\n opencv-python'
