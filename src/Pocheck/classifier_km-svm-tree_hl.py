@@ -35,6 +35,7 @@ import sys
 import math
 import pickle
 from sklearn.svm import SVC
+from joint_bayesian import *
 
 def main(args):
   
@@ -127,7 +128,7 @@ def main(args):
             if (args.mode=='TRAIN'):
                 # Train classifier
                 print('Training classifier')
-
+                print("init shape : ",emb_array.shape)
                 # node = km_svm_Node(emb_array, np.array(labels), np.array([i for i in range(len(dataset))]))
                 tree = km_svm_Tree(emb_array, np.array(labels), np.array([i for i in range(len(dataset))]))
                 print(tree.tree)
@@ -186,6 +187,7 @@ class km_svm_Tree(object):
         self.root = km_svm_Node(data, cls_labels, classes, treedic)
         self.tree = self.root.treedic
 
+
 class km_svm_Node(object):
 
     def __init__(self, data, cls_labels, classes, treedic):
@@ -195,6 +197,7 @@ class km_svm_Node(object):
         self.data = data
         self.cls_labels = cls_labels
         self.classes = classes
+        print("node data shape : ", data.shape)
         if len(self.classes) > 30:
             self.treedic['leaf'] = False
             self.treedic['sleaf'] = False
@@ -219,6 +222,8 @@ class km_svm_Node(object):
         elif len(self.classes) == 1:
             self.treedic['sleaf'] = True
             self.treedic['cls_label'] = cls_labels[0]
+            self.treedic['jb_num'] = self.jb_classify(data, cls_labels)
+
         else:
             self.treedic['leaf'] = True
             self.treedic['sleaf'] = False
@@ -227,9 +232,8 @@ class km_svm_Node(object):
             self.svm_model, self.class_nums = self.svm_classify(data, cls_labels)
             self.treedic['node'] = self.svm_model
             self.treedic['cls_label'] = self.class_nums
+            self.treedic['jb_num'] = self.jb_classify(data, cls_labels)
 
-
-        
     def km_classify(self, data, cls_labels, classes):
         temb_array = list(data)
         tlabels = list(cls_labels)
@@ -259,7 +263,7 @@ class km_svm_Node(object):
         # print(classes)
 
         return km_model, km_labels, classes[np.array(km_model.labels_, dtype=bool)], classes[~np.array(km_model.labels_, dtype=bool)] # list(km_model.labels_).count(0), list(km_model.labels_).count(1) # km_model.labels_!!!
-    
+
     def svm_classify(self, data, labels):
         svm_model = SVC(kernel='linear', probability=True).fit(data, labels)
         class_nums = []
@@ -267,7 +271,10 @@ class km_svm_Node(object):
             if label not in class_nums: class_nums.append(label)
         return svm_model, class_nums
         
-            
+    def jb_classify(self, data, labels):
+        JointBayesian_Train(data, labels, labels[0])
+        return labels[0]
+
 def split_dataset(dataset, min_nrof_images_per_class, nrof_train_images_per_class):
     train_set = []
     test_set = []

@@ -41,16 +41,30 @@ SET_HEIGHT = 1080
 
 def svmtree_predict(data, tree):
     if tree['sleaf']:
-        print('class in this sleaf : ', tree['cls_label'])
+        # print('class in this sleaf : ', tree['cls_label'])
         return tree['cls_label']
     elif tree['leaf']:
+        '''
         print('classes in this leaf :',tree['cls_label'])
+        
         print('class probabilities :',tree['node'].predict_proba(data))
         print('best probability :', np.max(tree['node'].predict_proba(data)[0]))
-        print('prediction :',tree['node'].predict(data))
+        # emb_list = emb_result[tree['cls_label']]
+        print("before data: ", data)
+        print("before shape: ", data.shape)
+        '''
+        labels,values = predict_joint_bayesian(A_dic[str(tree['cls_label'][0])], G_dic[str(tree['cls_label'][0])], emb_result[tree['cls_label']], data)
+        data = np.reshape(data, (1, -1))
+        # print('Joint label : ', tree['cls_label'][labels])
+        '''
+        print('after data: ', data)
+        print('after shape: ', data.shape)
+        '''
+        # print('prediction :',tree['node'].predict(data))
+
         # print(tree['cls_label'])
         # print(tree['cls_label'][tree['node'].predict(data)[0]])
-        return tree['node'].predict(data)[0], np.max(tree['node'].predict_proba(data)[0]), tree['cls_label'] #tree['cls_label'][tree['node'].predict(data)[0]]
+        return tree['node'].predict(data)[0], np.max(tree['node'].predict_proba(data)[0]), tree['cls_label'], tree['cls_label'][labels] #tree['cls_label'][tree['node'].predict(data)[0]]
     else:
         if tree['node'].predict(data):
             return svmtree_predict(data, tree['left'])
@@ -65,6 +79,7 @@ print(os.getcwd())
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 matplotlib.use('agg')
+
 
 ### liveness  ###
 if LIVENESS:
@@ -100,7 +115,7 @@ def make_file(table):
             file_list.append([key, 0, val[1]])
 
 
-    output_name = '../src/test1.txt'
+    output_name = 'test1.txt'
     with open(output_name, 'w') as f:
         for x in file_list:
             f.write(str(x[0])+" "+str(x[1])+ " " + str(x[2]) + '\n')
@@ -116,7 +131,7 @@ with tf.Graph().as_default():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options, log_device_placement=True))
     with sess.as_default():
-        pnet, rnet, onet = detect_face.create_mtcnn(sess, '../parameter/det/')
+        pnet, rnet, onet = detect_face.create_mtcnn(sess, 'parameter/det/')
 
         minsize = 35  # minimum size of face
         threshold = [0.6, 0.7, 0.7]  # three steps's threshold
@@ -126,7 +141,7 @@ with tf.Graph().as_default():
         batch_size = 1000
         image_size = 182
         input_image_size = 160
-        humans_dir = '~/datasets/image_actor/actor_100'
+        humans_dir = './actor_136'
         # humans_dir = '~/datasets/actor_male'
         # humans_dir = '~/datasets/image_actor/actor_mtcnn_pur'
         humans_dir = facenet.get_dataset(humans_dir)
@@ -145,7 +160,7 @@ with tf.Graph().as_default():
 
         print('Loading feature extractionodel')
         #modeldir = '../parameter/20190423-175316/20190423-175316.pb'
-        modeldir = '../parameter/20180402-114759/20180402-114759.pb'
+        modeldir = 'parameter/20180402-114759/20180402-114759.pb'
         # modeldir = '../parameter/20170511-185253/20170511-185253.pb'
         facenet.load_model(modeldir)
 
@@ -159,7 +174,7 @@ with tf.Graph().as_default():
 
         # classifier_filename = '../parameter/clf/my_classifier.pkl'
         # classifier_filename = 'actor_tree_hl_2.pkl'
-        classifier_filename = 'actor_tree_hl_2.pkl'
+        classifier_filename = '136celeb.pkl'
 
         classifier_filename_exp = os.path.expanduser(classifier_filename)
 
@@ -183,18 +198,38 @@ with tf.Graph().as_default():
 
         ### liveness end ###
 
-        result_fold = 'jb/'
+        result_fold = 'JB_result/'
         with open(result_fold + "mean_emb_result.pkl", "rb") as f:
             emb_result = pickle.load(f)
-        with open(result_fold+"A.pkl", "rb") as f:
-            A = pickle.load(f)
-        with open(result_fold+"G.pkl", "rb") as f:
-            G = pickle.load(f)
 
 
         with open(classifier_filename_exp, 'rb') as infile:
             (model, class_names) = pickle.load(infile)
             print('load classifier file-> %s' % classifier_filename_exp)
+
+        JB_list = dict()
+        jb_path = './JB_result/'
+        A_dir_path = os.path.join(jb_path, 'A')
+        G_dir_path = os.path.join(jb_path, 'G')
+        A_files = os.listdir(A_dir_path)
+        G_files = os.listdir(G_dir_path)
+        A_dic = {}
+        G_dic = {}
+        for files in A_files:
+            with open(os.path.join(A_dir_path, files), "rb") as f:
+                print(files, type(files))
+                num = files.split('_')[1]
+                A = pickle.load(f)
+                A_dic[num] = A
+
+        for files in G_files:
+            with open(os.path.join(G_dir_path, files), "rb") as f:
+                num = files.split('_')[1]
+                G = pickle.load(f)
+                G_dic[num] = G
+
+        print(A_dic)
+        print(G_dic)
         if args.video:
             video_capture = cv2.VideoCapture(args.video)
         elif args.image:
@@ -246,7 +281,7 @@ with tf.Graph().as_default():
 
                 bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)
                 nrof_faces = bounding_boxes.shape[0]
-                print('Detected_FaceNum: %d' % nrof_faces)
+                # print('Detected_FaceNum: %d' % nrof_faces)
                 if nrof_faces > 0:
                     det = bounding_boxes[:, 0:4]
                     img_size = np.asarray(frame.shape)[0:2]
@@ -317,7 +352,7 @@ with tf.Graph().as_default():
                         feed_dict = {images_placeholder: scaled_reshape[i], phase_train_placeholder: False}
                         emb_array[0, :] = sess.run(embeddings, feed_dict=feed_dict)
                         # print(type(emb_array))
-                        print(emb_array.shape)
+                        # print(emb_array.shape)
                         # res = []
                         # for j in range(512):
                         #     if j%4 == 0: 
@@ -335,30 +370,17 @@ with tf.Graph().as_default():
                         # best_class_indices = np.argmax(predictions, axis=1)
                         # print(best_class_indices)
                         # best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                        best_class_index, best_class_probabilities, group = svmtree_predict(emb_array, model)
-                        
+                        best_class_index, best_class_probabilities, group, best_class_index_jb = svmtree_predict(emb_array, model)
                         # print(HumanNames)
-                        print('index :',best_class_index)
+                        # print('index :',best_class_index)
 
-                        #JB
-                        max_i = 0
-                        max_v = -99999999999
-                        predictions = []
-                        for idx in group:
-                            value = Verify(A, G, emb_array, emb_result[idx])
-                            predictions.append(value)
-                            if max_v < value:
-                                max_v = value
-                                max_i = idx
-                        best_class_index_jb = max_i
-                        print(predictions)
-                        print(best_class_index, best_class_index_jb)
 
                         #plot result idx under box
                         text_x = bb[i][0]
                         text_y = bb[i][3] + 10
+
                         try:
-                            print('result: ', HumanNames[best_class_index_jb], str(np.round(best_class_probabilities, 2)))
+                            print('result: ', HumanNames[best_class_index_jb],HumanNames[best_class_index], str(np.round(best_class_probabilities, 2)))
                             # print('result: ', HumanNames[best_class_indices[0]], str(np.round(best_class_probabilities, 2)))
                         except:
                             print('unregistered person')  
@@ -416,7 +438,7 @@ with tf.Graph().as_default():
                         if args.image:
                             cv2.imwrite('det'+args.image, frame.astype(np.uint8))
                             print('saved')
-                        print(result_names)
+                        # print(result_names)
 
 
                         chk_name.append(result_names)
@@ -458,9 +480,11 @@ with tf.Graph().as_default():
             
             if VIDEO_SAVE:
                 out.write(frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            k = cv2.waitKey(1)
+            if k & 0xFF == ord('q'):
                 break
-
+            elif k & 0xFF == ord('a'):
+                pass
         if VIDEO_SAVE:
             out.release()
         video_capture.release()
