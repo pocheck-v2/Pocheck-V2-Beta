@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 import time
 
 #Before training,the mean must be substract
-def JointBayesian_Train(trainingset, label, fold = "./"):
+def JointBayesian_Train(trainingset, label, index, fold = "./JB_result/"):
     if fold[-1] != '/':
         fold += '/'
     print(trainingset.shape)
@@ -19,14 +19,20 @@ def JointBayesian_Train(trainingset, label, fold = "./"):
     n_dim   = trainingset.shape[1]
     # filter the complicate label,for count the total people num
     classes, labels = np.unique(label, return_inverse=True)
+    # classes, labels = np.unique(labels, return_inverse=True)
     # the total people num
     n_class = len(classes)
+    for i in range(n_class):
+        labels[i] = i
+    print("class : ", classes)
+    print("labels : " , labels)
     # save each people items
     cur = {}
     withinCount = 0
     # record the count of each people
     numberBuff = np.zeros(n_image)
     maxNumberInOneClass = 0
+    print(trainingset)
     for i in range(n_class):
         # get the item of i
         cur[i] = trainingset[labels==i]
@@ -38,6 +44,8 @@ def JointBayesian_Train(trainingset, label, fold = "./"):
         if numberBuff[n_same_label] == 0:
             numberBuff[n_same_label] = 1
             maxNumberInOneClass = max(maxNumberInOneClass, n_same_label)
+    print("cur : ", cur)
+
     print("prepare done, maxNumberInOneClass=", maxNumberInOneClass)
 
     u  = np.zeros([n_dim, n_class])
@@ -61,7 +69,7 @@ def JointBayesian_Train(trainingset, label, fold = "./"):
     SwG   = {}
     convergence = 1
     min_convergence = 1
-    for l in range(150):
+    for l in range(1):
         F  = np.linalg.pinv(Sw)
         u  = np.zeros([n_dim, n_class])
         ep = np.zeros([n_dim, n_image])
@@ -69,7 +77,10 @@ def JointBayesian_Train(trainingset, label, fold = "./"):
         for mi in range(maxNumberInOneClass + 1):
             if numberBuff[mi] == 1:
 		#G = −(mS μ + S ε )−1*Su*Sw−1
-                G = -np.dot(np.dot(np.linalg.pinv(mi*Su+Sw), Su), F)
+                try:
+                    G = -np.dot(np.dot(np.linalg.pinv(mi*Su+Sw), Su), F)
+                except Exception:
+                    break
 		#Su*(F+mi*G) for u
                 SuFG[mi] = np.dot(Su, (F+mi*G))
 		#Sw*G for e
@@ -97,18 +108,31 @@ def JointBayesian_Train(trainingset, label, fold = "./"):
             F = np.linalg.pinv(Sw)
             G = -np.dot(np.dot(np.linalg.pinv(2*Su+Sw),Su), F)
             A = np.linalg.pinv(Su+Sw)-(F+G)
-            data_to_pkl(G, fold + "G.pkl")
-            data_to_pkl(A, fold + "A.pkl")
+            data_to_pkl(G, fold + "G/G_" + str(index) + "_.pkl")
+            data_to_pkl(A, fold + "A/A_" + str(index) + "_.pkl")
 
     F = np.linalg.pinv(Sw)
-    G = -np.dot(np.dot(np.linalg.pinv(2*Su+Sw),Su), F)
-    A = np.linalg.pinv(Su+Sw) - (F+G)
+    try:
+        G = -np.dot(np.dot(np.linalg.pinv(2*Su+Sw),Su), F)
+        A = np.linalg.pinv(Su+Sw) - (F+G)
+    except:
+        return None, None
     data_to_pkl(G, fold + "G_con.pkl")
     data_to_pkl(A, fold + "A_con.pkl")
 
     return A, G
 
-#ratio of similar,the threshold we always choose in (-1,-2)            
+#ratio of similar,the threshold we always choose in (-1,-2)
+def predict_joint_bayesian(A, G, emb_array, current_emb):
+    max_i = 0
+    max_v = -999999999
+    for i in range(emb_array.shape[0]):
+        value = Verify(A, G, current_emb, emb_array[i])
+        if max_v < value:
+            max_v = value
+            max_i = i
+    return max_i, max_v
+
 def Verify(A, G, x1, x2):
 
     x1.shape = (-1,1)
