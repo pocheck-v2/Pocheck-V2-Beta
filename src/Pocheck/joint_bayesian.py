@@ -6,7 +6,7 @@ from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 import time
-from config import NAME, PATH, FLAGS, HUMAN, TENSOR
+from config import NAME, PATH, FLAGS
 
 # Before training,the mean must be substract
 def JointBayesian_Train(trainingset, label, index, fold = PATH.JB_PATH):

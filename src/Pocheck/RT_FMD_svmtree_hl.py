@@ -20,7 +20,7 @@ from Pocheck.joint_bayesian import *
 import time
 import argparse
 import threading
-from config import NAME, PATH, FLAGS, HUMAN, TENSOR
+from config import NAME, PATH, FLAGS
 
 ## setting
 VIDEO_SAVE = True
