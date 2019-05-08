@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import threading
 import sys
-from .models import PLAY_OR_NOT
+from .models import F_name, S_name
 # sys.path.append('/home/pirl/Desktop/Pocheck-V2-Beta')
 
 # import src
@@ -19,7 +19,7 @@ def index(request):
     # main()
     template = loader.get_template('pocheck/index.html')
     context = {
-        'latest_question_list' : "test",
+        'celeb_list' : F_name.objects.all()
     }
     return HttpResponse(template.render(context, request))
 
@@ -96,5 +96,4 @@ def livefe(request):
     else:
 
         return StreamingHttpResponse(gen(VideoCamera()), content_type='text/html; charset=utf-8')
-
 

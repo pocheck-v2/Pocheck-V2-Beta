@@ -51,10 +51,10 @@
             <a class="nav-link js-scroll-trigger" href="#feature">Feature</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#play">play</a>
+            <a class="nav-link js-scroll-trigger" href="#list">List</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#contact">Contact</a>
+            <a class="nav-link js-scroll-trigger" href="#play">play</a>
           </li>
         </ul>
       </div>
@@ -78,9 +78,7 @@
                   <!-- Demo image for screen mockup, you can put an image here, some HTML, an animation, video, or anything else! -->
                   <img src='{% static "pocheck/img/crowd2.jpeg" %}'  width = "100%" height="100%" alt="">
                 </div>
-                <div class="button">
-                  <!-- You can hook the "home button" to some JavaScript events or just remove it -->
-                </div>
+
               </div>
             </div>
           </div>
@@ -89,7 +87,7 @@
     </div>
   </header>
 
-  <section class="features" id="feature">
+  <section class="features text-center" id="feature">
     <div class="container">
       <div class="section-heading text-center">
         <h2>Features</h2>
@@ -115,28 +113,32 @@
                 </div>
               </div>
             </div>
-            <div class="row">
-              <div class="col-lg-6">
-                <div class="feature-item">
-                  <img src='{% static "pocheck/img/feature/feature3.png" %}'  width = "100%" height="100%" alt="">
-                  <h3>Free to Use</h3>
-                  <p class="text-muted">As always, this theme is free to download and use for any purpose!</p>
-                </div>
-              </div>
-              <div class="col-lg-6">
-                <div class="feature-item">
-                  <img src='{% static "pocheck/img/feature/feature4.png" %}'  width = "100%" height="100%" alt="">
-                  <h3>Open Source</h3>
-                  <p class="text-muted">Since this theme is MIT licensed, you can use it commercially!</p>
-                </div>
-              </div>
-            </div>
+
           </div>
+          <a href="#list" class="btn btn-outline btn-xl js-scroll-trigger btn-primary">인물 리스트 보러가기</a>
         </div>
       </div>
     </div>
   </section>
-  <section class="download bg-primary text-center" id="play">
+  <section class="download bg-primary text-left" id="list">
+    {% if celeb_list %}
+      {% for f_name in celeb_list %}
+    <h3>{{ f_name }}</h3>
+        {% for name in f_name.s_name_set.all %}
+          {{ name }}
+        {% endfor %}
+      <hr>
+      {% endfor %}
+    {% endif %}
+
+    <a href="#play" class="btn btn-outline btn-xl js-scroll-trigger btn-secondary ">시연하기</a>
+    <div class="overlay"></div>
+  </section>
+
+
+
+  <section class="features text-center" id = "play">
+
     <div class="container">
       <div class="row">
         <div class="col-md-8 mx-auto">
@@ -146,43 +148,7 @@
         </div>
       </div>
     </div>
-  </section>
 
-
-
-  <section class="cta">
-    <div class="cta-content">
-      <div class="container">
-        <h2>Stop waiting.<br>Start building.</h2>
-        <a href="#contact" class="btn btn-outline btn-xl js-scroll-trigger">Let's Get Started!</a>
-      </div>
-    </div>
-    <div class="overlay"></div>
-  </section>
-
-  <section class="contact bg-primary" id="contact">
-    <div class="container">
-      <h2>We
-        <i class="fas fa-heart"></i>
-        new friends!</h2>
-      <ul class="list-inline list-social">
-        <li class="list-inline-item social-twitter">
-          <a href="#">
-            <i class="fab fa-twitter"></i>
-          </a>
-        </li>
-        <li class="list-inline-item social-facebook">
-          <a href="#">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-        </li>
-        <li class="list-inline-item social-google-plus">
-          <a href="#">
-            <i class="fab fa-google-plus-g"></i>
-          </a>
-        </li>
-      </ul>
-    </div>
   </section>
 
   <footer>

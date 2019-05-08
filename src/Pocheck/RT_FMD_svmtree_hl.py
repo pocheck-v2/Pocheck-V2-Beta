@@ -25,17 +25,33 @@ from config import NAME, PATH, FLAGS
 ## setting
 VIDEO_SAVE = True
 LIVENESS = False
-HD = False
+HD = True
 UNKNOWN_THRESHOLD = 0.10
 CHECK_POINT = 4
 
 SET_FPS = 14
-SET_WIDTH = 1920
-SET_HEIGHT = 1080
+SET_WIDTH = 1080
+SET_HEIGHT = 720
 
 
 # 1920 X 1080
 
+def max_hist(dic):
+    prob = 0
+    name = None
+
+    for k in dic.keys():
+        '''
+        if prob < np.mean(dic[k]):
+            name = k
+            prob = np.mean(dic[k])
+        '''
+        size = np.sum(dic[k]) / (len(dic[k]) ** (1/len(dic[k])))
+        if size > prob:
+            prob = size
+            name = k
+
+    return name, prob
 
 def svmtree_predict(data, tree, emb_result):
     if tree['sleaf']:
@@ -121,7 +137,7 @@ def make_file(table):
     with open(output_name, 'w') as f:
         for x in file_list:
             f.write(str(x[0]) + " " + str(x[1]) + " " + str(x[2]) + '\n')
-            print(x)
+            # print(x)
         print("file saved")
 
     # os.system('../src/send.sh ' + output_name)
@@ -265,13 +281,28 @@ def main():
                 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
                 out = cv2.VideoWriter('../video_file/' + s + '.avi', fourcc, SET_FPS, (int(wid), int(hei)))
             flag = True
+
             while flag:
                 print('Start Recognition!')
                 last_frame = None
                 last = None
                 prevTime = 0
                 frame_cnt = 0
-                RESULT = []
+                RESULT_dic = dict()
+                tt = time.time()
+                wait = 5
+                while wait >= 0:
+                    ret, frame = video_capture.read()
+
+                    if time.time() - tt >= 1:
+                        wait -= 1
+                        tt = time.time()
+                    img_pil = Image.fromarray(frame)
+                    draw = ImageDraw.Draw(img_pil)
+                    draw.text((10, 10), str(wait), font=font, fill=(0, 0, 255, 5))
+                    frame = np.array(img_pil)
+                    cv2.imshow("Video", frame)
+                    cv2.waitKey(1)
                 while frame_cnt < 60:
                     ret, frame = video_capture.read()
 
@@ -290,7 +321,7 @@ def main():
                         bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)
                         nrof_faces = bounding_boxes.shape[0]
                         # print('Detected_FaceNum: %d' % nrof_faces)
-                        if nrof_faces > 0:
+                        if nrof_faces == 1:
                             det = bounding_boxes[:, 0:4]
                             img_size = np.asarray(frame.shape)[0:2]
 
@@ -332,7 +363,7 @@ def main():
                                 cropped.append(frame[bb[i][1]:bb[i][3], bb[i][0]:bb[i][2], :])
 
                                 # size cut
-                                print(bb[i][3] - bb[i][1], bb[i][2] - bb[i][0])
+                                # print(bb[i][3] - bb[i][1], bb[i][2] - bb[i][0])
                                 # if bb[i][3]-bb[i][1]>=120:
                                 try:
                                     cropped[i] = facenet.flip(cropped[i], False)
@@ -394,10 +425,10 @@ def main():
                                 # if group == [52, 54, 55, 60, 61, 69, 70, 72, 76, 77, 82, 83, 91, 94, 95, 96, 99]:
                                 with open(PATH.A_PATH, 'rb') as a:
                                     A = pickle.load(a)
-                                    print('A changed')
+                                    # print('A changed')
                                 with open(PATH.G_PATH, 'rb') as g:
                                     G = pickle.load(g)
-                                    print('G changed')
+                                    # print('G changed')
 
                                 # JB
                                 max_i = 0
@@ -410,8 +441,8 @@ def main():
                                         max_v = value
                                         max_i = idx
                                 best_class_index_jb2 = max_i
-                                print(predictions)
-                                print(best_class_index, best_class_index_jb, best_class_index_jb2)
+                                # print(predictions)
+                                # print(best_class_index, best_class_index_jb, best_class_index_jb2)
                                 # print(HumanNames)
                                 # print('index :',best_class_index)
 
@@ -420,11 +451,12 @@ def main():
                                 text_y = bb[i][3] + 10
 
                                 try:
-                                    print(group)
-                                    print('result: ', HumanNames[best_class_index], HumanNames[best_class_index_jb],
-                                          HumanNames[best_class_index_jb2], str(np.round(best_class_probabilities, 2)))
+                                    # print(group)
+                                    print('result: ', HumanNames[best_class_index], HumanNames[best_class_index_jb2],
+                                          str(np.round(best_class_probabilities,2)), max_v)
                                     # print('result: ', HumanNames[best_class_indices[0]], str(np.round(best_class_probabilities, 2)))
-                                except:
+                                except Exception as e:
+                                    print(e)
                                     print('unregistered person')
 
                                 if best_class_probabilities < UNKNOWN_THRESHOLD:
@@ -444,18 +476,19 @@ def main():
                                 # print('test')
                                 try:
                                     result_names = HumanNames[best_class_index_jb2]
-                                    RESULT.append(result_names)
-                                    # result_names = HumanNames[best_class_indices[0]]
+
                                 except:
                                     result_names = 'unknown'
                                     Human_hash['unknown'] = [False, 0]
                                     Human_count['unknown'] = 0
-                                    RESULT.append(result_names)
+                                multi = 1
                                 if (Human_hash[result_names][0] is True) and (best_class_index == best_class_index_jb2):
                                     cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0),
                                                   2)  # boxing face
 
                                     last = scaled[i]
+                                    multi = 2
+                                    # result_names = HumanNames[best_class_indices[0]]
                                     # last_frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = scaled[i]
                                     '''
                                     img_pil = Image.fromarray(frame)
@@ -480,7 +513,7 @@ def main():
                                     draw = ImageDraw.Draw(img_pil)
                                     # draw.text((text_x, text_y), result_names + " " + str(np.round(best_class_probabilities, 2)), font=font, fill=(0, 0, 255, 0))
                                     frame = np.array(img_pil)
-
+                                    last = scaled[i]
                                     # cv2.putText(frame, result_names + " " + str(np.round(best_class_probabilities, 2)),
                                     #             (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), thickness=1, lineType=2)
                                 # else:
@@ -491,6 +524,12 @@ def main():
                                 # print(result_names)
 
                                 chk_name.append(result_names)
+                                result_names = HumanNames[best_class_index_jb2]
+                            # RESULT.append([ result_names, best_class_probabilities ])
+                                if result_names not in RESULT_dic.keys():
+                                    RESULT_dic[result_names] = [ max_v * multi ]
+                                else:
+                                    RESULT_dic[result_names].append(max_v * multi)
                             for x in chk_name:
                                 tmp_arr[x] = True
 
@@ -536,32 +575,48 @@ def main():
                         break
                     elif k & 0xFF == ord('a'):
                         pass
-                if VIDEO_SAVE:
-                    out.release()
-                result_name = format(max(RESULT, key=RESULT.count))
-                result_path = os.path.join(PATH.DATA_PATH, result_name)
-                result_img = os.listdir(result_path)[0]
-                last_frame[scaled[i].shape[1]:scaled[i].shape[1]*2, 0:scaled[i].shape[0]] = cv2.imread(os.path.join(result_path, result_img))
-                last_frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = last
-                img_pil = Image.fromarray(last_frame)
-                draw = ImageDraw.Draw(img_pil)
-                result_name = result_name.split('_')
-                res = []
-                for ch in result_name:
-                    if not ch.isdigit():
-                        res.append(str(ch) + " ")
-                res = ''.join(res)
-                draw.text((10, 400), "인식 결과 : {}".format(res), font=font, fill=(0, 250, 200, 0))
-                draw.text((200, 10), "Q : 나가기, R : 재시작", font=font, fill=(0, 250, 200, 0))
-                last_frame = np.array(img_pil)
-                cv2.imshow('Video', last_frame)
-                k = cv2.waitKey(0)
-                if k & 0xFF == ord('q'):
-                    flag = False
-                    pass
-                elif k & 0xFF == ord('r'):
+                # if VIDEO_SAVE:
+                #     out.release()
+
+                try:
+                    result_name, prob = max_hist(RESULT_dic)
+                    RESULT_dic.clear()
+                    # result_name = format(max(RESULT, key=RESULT.count))
+                    result_path = os.path.join(PATH.DATA_PATH, result_name)
+                    result_img = os.listdir(result_path)[0]
+
+                    last_frame[scaled[i].shape[1]:scaled[i].shape[1]*2, 0:scaled[i].shape[0]] = cv2.imread(os.path.join(result_path, result_img))
+                    last_frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = last
+                    img_pil = Image.fromarray(last_frame)
+                    draw = ImageDraw.Draw(img_pil)
+                    result_name = result_name.split('_')
+                    res = []
+                    for ch in result_name:
+                        if not ch.isdigit():
+                            res.append(str(ch) + " ")
+                    res = ''.join(res)
+                    color = None
+                    if prob > 0.8:
+                        color = (0, 255, 0 ,0)
+                    elif prob > 0.4:
+                        color = (0, 250, 200, 0)
+                    else:
+                        color = (0, 0, 255, 0)
+                    draw.text((10, 400), "인식 결과 : {}".format(res + " " + str(np.round(prob, 2))), font=font, fill=color)
+                    draw.text((200, 10), "Q : 나가기, R : 재시작", font=font, fill=(0, 250, 200, 0))
+                    last_frame = np.array(img_pil)
+                    cv2.imshow('Video', last_frame)
+                    k = cv2.waitKey(0)
+
+                    if k & 0xFF == ord('q'):
+                        flag = False
+                        pass
+                    elif k & 0xFF == ord('r'):
+                        flag = True
+                except Exception:
                     flag = True
-                cv2.destroyAllWindows()
+                    continue
+            cv2.destroyAllWindows()
 
             video_capture.release()
 

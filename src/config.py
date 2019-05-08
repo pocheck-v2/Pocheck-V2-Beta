@@ -4,7 +4,7 @@ class NAME:
     '''
        DIR name
        '''
-    DATASET_DIR = "actor_mtcnn_pur"
+    DATASET_DIR = "facedata_2"
     JB_DIR = "jb"
     PARAM_DIR = "parameter"
     DET_DIR = "det"
@@ -15,9 +15,9 @@ class NAME:
     FACENET_NAME = '20180402-114759'
     FACENET_PB = FACENET_NAME + '.pb'
     EMB_ARRAY = "mean_emb_result.pkl"
-    CLS_NAME = 'actor_pur.pkl'
-    A_NAME = "A_con_1078_i5000.pkl"
-    G_NAME = "G_con_1078_i5000.pkl"
+    CLS_NAME = '0508test.pkl'
+    A_NAME = "A_test0508.pkl"
+    G_NAME = "G_test0508.pkl"
 
 
 class PATH:
@@ -55,4 +55,4 @@ class FLAGS:
     input_image_size = 160
     humans_dir = PATH.DATA_PATH
     in_bound = True
-    bound_size = 130
+    bound_size = 100
