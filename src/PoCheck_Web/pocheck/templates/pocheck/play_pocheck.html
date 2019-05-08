@@ -1,14 +1,18 @@
 <!DOCTYPE html>
+
+{% load static %}
+{% load staticfiles %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>POCHECK</title>
-    {% if video %}
-        {{ video }}
 
-    {% endif %}
+
 </head>
 <body>
-
+    {% if video %}
+    <h1> {{ video }}</h1>
+    {% endif %}
+    <h1> No </h1>
 </body>
 </html>

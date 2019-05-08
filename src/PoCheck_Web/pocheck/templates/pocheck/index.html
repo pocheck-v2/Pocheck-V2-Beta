@@ -10,7 +10,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>New Age - Start Bootstrap Theme</title>
+  <title>POCHECK</title>
 
   <!-- Bootstrap core CSS -->
   <link href='{% static "pocheck/vendor/bootstrap/css/bootstrap.min.css" %}' rel="stylesheet">
@@ -48,10 +48,10 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#play">Play</a>
+            <a class="nav-link js-scroll-trigger" href="#feature">Feature</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#features">Features</a>
+            <a class="nav-link js-scroll-trigger" href="#play">play</a>
           </li>
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#contact">Contact</a>
@@ -66,17 +66,17 @@
       <div class="row h-100">
         <div class="col-lg-7 my-auto">
           <div class="header-content mx-auto">
-            <h1 class="mb-5">POCHECK는 ~~한 프로그램입니다.</h1>
-            <a href="#play" class="btn btn-outline btn-xl js-scroll-trigger">Play POCHECK</a>
+            <h1 class="mb-5">POCHECK는 인공지능을 이용해 스스로 얼굴을 인식해 인물을 판별하는 시스템입니다. 지금 체험해보세요! </h1>
+            <a href="#feature" class="btn btn-outline btn-xl js-scroll-trigger">POCHECK 특징</a>
           </div>
         </div>
         <div class="col-lg-5 my-auto">
-          <div class="device-container">
-            <div class="device-mockup iphone6_plus portrait white">
+          <div class="device-container"width="50" height="50">
+            <div class="device-mockup ipad white">
               <div class="device">
                 <div class="screen">
                   <!-- Demo image for screen mockup, you can put an image here, some HTML, an animation, video, or anything else! -->
-                  <img src='{% static "pocheck/img/logo/logo.jpg" %}' class="img-fluid" alt="">
+                  <img src='{% static "pocheck/img/crowd2.jpeg" %}'  width = "100%" height="100%" alt="">
                 </div>
                 <div class="button">
                   <!-- You can hook the "home button" to some JavaScript events or just remove it -->
@@ -89,70 +89,43 @@
     </div>
   </header>
 
-  <section class="download bg-primary text-center" id="play">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-8 mx-auto">
-          <h2 class="section-heading">시연 바로가기</h2>
-          <p>아이콘을 누르면 실행됩니다.</p>
-          <a class="badge-link" href="{% url 'pocheck:livefe' %}"><img src='{% static "pocheck/img/facial-recognition.png" %}' width = "150" alt=""></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="features" id="features">
+  <section class="features" id="feature">
     <div class="container">
       <div class="section-heading text-center">
-        <h2>Unlimited Features, Unlimited Fun</h2>
-        <p class="text-muted">Check out what you can do with this app theme!</p>
+        <h2>Features</h2>
         <hr>
       </div>
       <div class="row">
-        <div class="col-lg-4 my-auto">
-          <div class="device-container">
-            <div class="device-mockup iphone6_plus portrait white">
-              <div class="device">
-                <div class="screen">
-                  <!-- Demo image for screen mockup, you can put an image here, some HTML, an animation, video, or anything else! -->
-                  <img src='{% static "pocheck/img/demo-screen-1.jpg" %}' class="img-fluid" alt="">
-                </div>
-                <div class="button">
-                  <!-- You can hook the "home button" to some JavaScript events or just remove it -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-8 my-auto">
+
+        <div class="col-lg-12 my-auto">
           <div class="container-fluid">
             <div class="row">
               <div class="col-lg-6">
                 <div class="feature-item">
-                  <i class="icon-screen-smartphone text-primary"></i>
-                  <h3>Device Mockups</h3>
-                  <p class="text-muted">Ready to use HTML/CSS device mockups, no Photoshop required!</p>
+                  <img src='{% static "pocheck/img/feature/feature1.png" %}'  width = "100%" height="100%" alt="">
+                  <h3>연예인 얼굴인식</h3>
+                  <p class="text-muted">5초간 원하는 연예인의 얼굴을 보여주세요.</p>
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="feature-item">
-                  <i class="icon-camera text-primary"></i>
-                  <h3>Flexible Use</h3>
-                  <p class="text-muted">Put an image, video, animation, or anything else in the screen!</p>
+                  <img src='{% static "pocheck/img/feature/feature2.png" %}'  width = "100%" height="100%" alt="">
+                  <h3>연예인 얼굴인식</h3>
+                  <p class="text-muted">000명의 원하는 연예인을 찾을 수 있습니다.</p>
                 </div>
               </div>
             </div>
             <div class="row">
               <div class="col-lg-6">
                 <div class="feature-item">
-                  <i class="icon-present text-primary"></i>
+                  <img src='{% static "pocheck/img/feature/feature3.png" %}'  width = "100%" height="100%" alt="">
                   <h3>Free to Use</h3>
                   <p class="text-muted">As always, this theme is free to download and use for any purpose!</p>
                 </div>
               </div>
               <div class="col-lg-6">
                 <div class="feature-item">
-                  <i class="icon-lock-open text-primary"></i>
+                  <img src='{% static "pocheck/img/feature/feature4.png" %}'  width = "100%" height="100%" alt="">
                   <h3>Open Source</h3>
                   <p class="text-muted">Since this theme is MIT licensed, you can use it commercially!</p>
                 </div>
@@ -163,6 +136,19 @@
       </div>
     </div>
   </section>
+  <section class="download bg-primary text-center" id="play">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8 mx-auto">
+          <h2 class="section-heading">시연 바로가기</h2>
+          <p>아이콘을 누르면 실행됩니다.</p>
+          <a class="badge-link" href="{% url 'pocheck:play' %}"><img src='{% static "pocheck/img/facial-recognition.png" %}' width = "150" alt=""></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
 
   <section class="cta">
     <div class="cta-content">
