@@ -264,282 +264,304 @@ def main():
 
                 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
                 out = cv2.VideoWriter('../video_file/' + s + '.avi', fourcc, SET_FPS, (int(wid), int(hei)))
+            flag = True
+            while flag:
+                print('Start Recognition!')
+                last_frame = None
+                last = None
+                prevTime = 0
+                frame_cnt = 0
+                RESULT = []
+                while frame_cnt < 60:
+                    ret, frame = video_capture.read()
 
-            print('Start Recognition!')
-            last_frame = None
-            prevTime = 0
-            frame_cnt = 0
-            while frame_cnt < 60:
-                ret, frame = video_capture.read()
+                    # frame = cv2.resize(frame, (0,0), fx=1.5, fy=1.5)    #resize frame (optional)
 
-                # frame = cv2.resize(frame, (0,0), fx=1.5, fy=1.5)    #resize frame (optional)
+                    curTime = time.time()  # calc fps
+                    timeF = frame_interval
 
-                curTime = time.time()  # calc fps
-                timeF = frame_interval
+                    if (c % timeF == 0):
+                        find_results = []
 
-                if (c % timeF == 0):
-                    find_results = []
+                        if frame.ndim == 2:
+                            frame = facenet.to_rgb(frame)
+                        frame = frame[:, :, 0:3]
 
-                    if frame.ndim == 2:
-                        frame = facenet.to_rgb(frame)
-                    frame = frame[:, :, 0:3]
+                        bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)
+                        nrof_faces = bounding_boxes.shape[0]
+                        # print('Detected_FaceNum: %d' % nrof_faces)
+                        if nrof_faces > 0:
+                            det = bounding_boxes[:, 0:4]
+                            img_size = np.asarray(frame.shape)[0:2]
 
-                    bounding_boxes, _ = detect_face.detect_face(frame, minsize, pnet, rnet, onet, threshold, factor)
-                    nrof_faces = bounding_boxes.shape[0]
-                    # print('Detected_FaceNum: %d' % nrof_faces)
-                    if nrof_faces > 0:
-                        det = bounding_boxes[:, 0:4]
-                        img_size = np.asarray(frame.shape)[0:2]
+                            cropped = []
+                            scaled = []
+                            scaled_a = []
+                            scaled_reshape = []
+                            bb = np.zeros((nrof_faces, 4), dtype=np.int32)
+                            exp_idx = 0
 
-                        cropped = []
-                        scaled = []
-                        scaled_a = []
-                        scaled_reshape = []
-                        bb = np.zeros((nrof_faces, 4), dtype=np.int32)
-                        exp_idx = 0
+                            chk_name = []
+                            tmp_arr = dict()
+                            for cls in humans_dir:
+                                tmp_arr[cls.name] = False
 
-                        chk_name = []
-                        tmp_arr = dict()
-                        for cls in humans_dir:
-                            tmp_arr[cls.name] = False
+                            for i in range(nrof_faces):
+                                emb_array = np.zeros((1, embedding_size))
 
-                        for i in range(nrof_faces):
-                            emb_array = np.zeros((1, embedding_size))
+                                i -= exp_idx
 
-                            i -= exp_idx
+                                bb[i][0] = det[i][0]
+                                bb[i][1] = det[i][1]
+                                bb[i][2] = det[i][2]
+                                bb[i][3] = det[i][3]
+                                # inner exception
+                                if bb[i][0] <= 0 or bb[i][1] <= 0 or bb[i][2] >= len(frame[0]) or bb[i][3] >= len(frame):
+                                    print('face is inner of range!')
+                                    exp_idx += 1
+                                    continue
+                                if bb[i][2] - bb[i][0] < FLAGS.bound_size or bb[i][3] - bb[i][1] < FLAGS.bound_size:
+                                    img_pil = Image.fromarray(frame)
+                                    draw = ImageDraw.Draw(img_pil)
+                                    draw.text((10, 10), "얼굴을 좀 더 가까이 대주세요", font=font, fill=(0, 0, 255, 0))
+                                    frame = np.array(img_pil)
+                                    cv2.imshow("Video", frame)
+                                    cv2.waitKey(1)
+                                    continue
+                                frame_cnt += 1
+                                cropped.append(frame[bb[i][1]:bb[i][3], bb[i][0]:bb[i][2], :])
 
-                            bb[i][0] = det[i][0]
-                            bb[i][1] = det[i][1]
-                            bb[i][2] = det[i][2]
-                            bb[i][3] = det[i][3]
-                            # inner exception
-                            if bb[i][0] <= 0 or bb[i][1] <= 0 or bb[i][2] >= len(frame[0]) or bb[i][3] >= len(frame):
-                                print('face is inner of range!')
-                                exp_idx += 1
-                                continue
-                            if bb[i][2] - bb[i][0] < FLAGS.bound_size or bb[i][3] - bb[i][1] < FLAGS.bound_size:
-                                img_pil = Image.fromarray(frame)
-                                draw = ImageDraw.Draw(img_pil)
-                                draw.text((10, 10), "얼굴을 좀 더 가까이 대주세요", font=font, fill=(0, 0, 255, 0))
-                                frame = np.array(img_pil)
-                                cv2.imshow("Video", frame)
-                                cv2.waitKey(1)
-                                continue
-                            frame_cnt += 1
-                            cropped.append(frame[bb[i][1]:bb[i][3], bb[i][0]:bb[i][2], :])
+                                # size cut
+                                print(bb[i][3] - bb[i][1], bb[i][2] - bb[i][0])
+                                # if bb[i][3]-bb[i][1]>=120:
+                                try:
+                                    cropped[i] = facenet.flip(cropped[i], False)
+                                except:
+                                    continue
+                                scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
+                                scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size),
+                                                       interpolation=cv2.INTER_CUBIC)
+                                scaled_a.append(facenet.prewhiten(scaled[i]))
 
-                            # size cut
-                            print(bb[i][3] - bb[i][1], bb[i][2] - bb[i][0])
-                            # if bb[i][3]-bb[i][1]>=120:
-                            try:
-                                cropped[i] = facenet.flip(cropped[i], False)
-                            except:
-                                continue
-                            scaled.append(misc.imresize(cropped[i], (image_size, image_size), interp='bilinear'))
-                            scaled[i] = cv2.resize(scaled[i], (input_image_size, input_image_size),
-                                                   interpolation=cv2.INTER_CUBIC)
-                            scaled_a.append(facenet.prewhiten(scaled[i]))
+                                ### liveness ###
+                                if LIVENESS:
+                                    # Detect if frame is a print attack or replay attack based on colorspace
+                                    face_crop = (bb[i][0], bb[i][1], bb[i][2], bb[i][3])
+                                    # eyes_close, eyes_ratio = face_liveness.is_eyes_close(frame, face_crop)
+                                    # mouth_open, mouth_ratio = face_liveness.is_mouth_open(frame, face_crop)
+                                    is_fake_print = face_liveness2.is_fake(frame, face_crop)
+                                    # is_fake_replay = face_liveness2.is_fake(frame, face_crop, flag=1)
 
-                            ### liveness ###
-                            if LIVENESS:
-                                # Detect if frame is a print attack or replay attack based on colorspace
-                                face_crop = (bb[i][0], bb[i][1], bb[i][2], bb[i][3])
-                                # eyes_close, eyes_ratio = face_liveness.is_eyes_close(frame, face_crop)
-                                # mouth_open, mouth_ratio = face_liveness.is_mouth_open(frame, face_crop)
-                                is_fake_print = face_liveness2.is_fake(frame, face_crop)
-                                # is_fake_replay = face_liveness2.is_fake(frame, face_crop, flag=1)
+                                    if is_fake_print:
+                                        is_fake_count_print += 1
+                                    print("This is Fake Data: {}".format(is_fake_count_print))
+                                    # total_eye_blinks, eye_counter = monitor_eye_blinking(eyes_close, eyes_ratio, total_eye_blinks,
+                                    #                                                      eye_counter, eye_continuous_close)
+                                    # total_mouth_opens, mouth_counter = monitor_mouth_opening(mouth_open, mouth_ratio,
+                                    #                                                          total_mouth_opens, mouth_counter,
+                                    #                                                          mouth_continuous_open)
+                                    #
+                                    # print("total_eye_blinks        = {}".format(total_eye_blinks))  # fake face if 0
+                                    # print("total_mouth_opens       = {}".format(total_mouth_opens))  # fake face if 0
 
-                                if is_fake_print:
-                                    is_fake_count_print += 1
-                                print("This is Fake Data: {}".format(is_fake_count_print))
-                                # total_eye_blinks, eye_counter = monitor_eye_blinking(eyes_close, eyes_ratio, total_eye_blinks,
-                                #                                                      eye_counter, eye_continuous_close)
-                                # total_mouth_opens, mouth_counter = monitor_mouth_opening(mouth_open, mouth_ratio,
-                                #                                                          total_mouth_opens, mouth_counter,
-                                #                                                          mouth_continuous_open)
-                                #
-                                # print("total_eye_blinks        = {}".format(total_eye_blinks))  # fake face if 0
-                                # print("total_mouth_opens       = {}".format(total_mouth_opens))  # fake face if 0
+                                ### liveness end ###
 
-                            ### liveness end ###
+                                scaled_reshape.append(scaled_a[i].reshape(-1, input_image_size, input_image_size, 3))
+                                feed_dict = {images_placeholder: scaled_reshape[i], phase_train_placeholder: False}
+                                emb_array[0, :] = sess.run(embeddings, feed_dict=feed_dict)
+                                # print(type(emb_array))
+                                # print(emb_array.shape)
+                                # res = []
+                                # for j in range(512):
+                                #     if j%4 == 0:
+                                #         tmp_list = []
+                                #         tmp_list.append(emb_array[0, j])
+                                #     else:
+                                #         tmp_list.append(emb_array[0, j])
+                                #     if j%4 == 3:
+                                #         res.append(min(tmp_list))
+                                # emb_array2 = np.zeros((1, 128))
+                                # emb_array2[0, :] = res
 
-                            scaled_reshape.append(scaled_a[i].reshape(-1, input_image_size, input_image_size, 3))
-                            feed_dict = {images_placeholder: scaled_reshape[i], phase_train_placeholder: False}
-                            emb_array[0, :] = sess.run(embeddings, feed_dict=feed_dict)
-                            # print(type(emb_array))
-                            # print(emb_array.shape)
-                            # res = []
-                            # for j in range(512):
-                            #     if j%4 == 0:
-                            #         tmp_list = []
-                            #         tmp_list.append(emb_array[0, j])
-                            #     else:
-                            #         tmp_list.append(emb_array[0, j])
-                            #     if j%4 == 3:
-                            #         res.append(min(tmp_list))
-                            # emb_array2 = np.zeros((1, 128))
-                            # emb_array2[0, :] = res
+                                # predictions = model.predict_proba(emb_array)
+                                # print(predictions)
+                                # best_class_indices = np.argmax(predictions, axis=1)
+                                # print(best_class_indices)
+                                # best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+                                best_class_index, best_class_probabilities, group, best_class_index_jb, A, G = svmtree_predict(
+                                    emb_array, model, emb_result)
 
-                            # predictions = model.predict_proba(emb_array)
-                            # print(predictions)
-                            # best_class_indices = np.argmax(predictions, axis=1)
-                            # print(best_class_indices)
-                            # best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                            best_class_index, best_class_probabilities, group, best_class_index_jb, A, G = svmtree_predict(
-                                emb_array, model, emb_result)
+                                # if group == [52, 54, 55, 60, 61, 69, 70, 72, 76, 77, 82, 83, 91, 94, 95, 96, 99]:
+                                with open(PATH.A_PATH, 'rb') as a:
+                                    A = pickle.load(a)
+                                    print('A changed')
+                                with open(PATH.G_PATH, 'rb') as g:
+                                    G = pickle.load(g)
+                                    print('G changed')
 
-                            # if group == [52, 54, 55, 60, 61, 69, 70, 72, 76, 77, 82, 83, 91, 94, 95, 96, 99]:
-                            with open(PATH.A_PATH, 'rb') as a:
-                                A = pickle.load(a)
-                                print('A changed')
-                            with open(PATH.G_PATH, 'rb') as g:
-                                G = pickle.load(g)
-                                print('G changed')
+                                # JB
+                                max_i = 0
+                                max_v = -99999999999
+                                predictions = []
+                                for idx in group:
+                                    value = Verify(A, G, emb_array, emb_result[idx])
+                                    predictions.append(value)
+                                    if max_v < value:
+                                        max_v = value
+                                        max_i = idx
+                                best_class_index_jb2 = max_i
+                                print(predictions)
+                                print(best_class_index, best_class_index_jb, best_class_index_jb2)
+                                # print(HumanNames)
+                                # print('index :',best_class_index)
 
-                            # JB
-                            max_i = 0
-                            max_v = -99999999999
-                            predictions = []
-                            for idx in group:
-                                value = Verify(A, G, emb_array, emb_result[idx])
-                                predictions.append(value)
-                                if max_v < value:
-                                    max_v = value
-                                    max_i = idx
-                            best_class_index_jb2 = max_i
-                            print(predictions)
-                            print(best_class_index, best_class_index_jb, best_class_index_jb2)
-                            # print(HumanNames)
-                            # print('index :',best_class_index)
+                                # plot result idx under box
+                                text_x = bb[i][0]
+                                text_y = bb[i][3] + 10
 
-                            # plot result idx under box
-                            text_x = bb[i][0]
-                            text_y = bb[i][3] + 10
+                                try:
+                                    print(group)
+                                    print('result: ', HumanNames[best_class_index], HumanNames[best_class_index_jb],
+                                          HumanNames[best_class_index_jb2], str(np.round(best_class_probabilities, 2)))
+                                    # print('result: ', HumanNames[best_class_indices[0]], str(np.round(best_class_probabilities, 2)))
+                                except:
+                                    print('unregistered person')
 
-                            try:
-                                print(group)
-                                print('result: ', HumanNames[best_class_index], HumanNames[best_class_index_jb],
-                                      HumanNames[best_class_index_jb2], str(np.round(best_class_probabilities, 2)))
-                                # print('result: ', HumanNames[best_class_indices[0]], str(np.round(best_class_probabilities, 2)))
-                            except:
-                                print('unregistered person')
+                                if best_class_probabilities < UNKNOWN_THRESHOLD:
+                                    cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 0, 255),
+                                                  2)  # boxing face
 
-                            if best_class_probabilities < UNKNOWN_THRESHOLD:
-                                cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 0, 255),
-                                              2)  # boxing face
+                                    img_pil = Image.fromarray(frame)
+                                    draw = ImageDraw.Draw(img_pil)
+                                    draw.text((text_x, text_y), "외부인", font=font, fill=(0, 0, 255, 0))
+                                    frame = np.array(img_pil)
 
-                                img_pil = Image.fromarray(frame)
-                                draw = ImageDraw.Draw(img_pil)
-                                draw.text((text_x, text_y), "외부인", font=font, fill=(0, 0, 255, 0))
-                                frame = np.array(img_pil)
+                                    # cv2.putText(frame, "unknown", (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                                    #             1, (0, 0, 255), thickness=1, lineType=2)
+                                    continue
+                                # print(Human_hash)
+                                # print(Human_count)
+                                # print('test')
+                                try:
+                                    result_names = HumanNames[best_class_index_jb2]
+                                    RESULT.append(result_names)
+                                    # result_names = HumanNames[best_class_indices[0]]
+                                except:
+                                    result_names = 'unknown'
+                                    Human_hash['unknown'] = [False, 0]
+                                    Human_count['unknown'] = 0
+                                    RESULT.append(result_names)
+                                if (Human_hash[result_names][0] is True) and (best_class_index == best_class_index_jb2):
+                                    cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0),
+                                                  2)  # boxing face
 
-                                # cv2.putText(frame, "unknown", (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                                #             1, (0, 0, 255), thickness=1, lineType=2)
-                                continue
-                            # print(Human_hash)
-                            # print(Human_count)
-                            # print('test')
-                            try:
-                                result_names = HumanNames[best_class_index_jb2]
-                                # result_names = HumanNames[best_class_indices[0]]
-                            except:
-                                result_names = 'unknown'
-                                Human_hash['unknown'] = [False, 0]
-                                Human_count['unknown'] = 0
-                            if (Human_hash[result_names][0] is True) and (best_class_index == best_class_index_jb2):
-                                cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 255, 0),
-                                              2)  # boxing face
+                                    last = scaled[i]
+                                    # last_frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = scaled[i]
+                                    '''
+                                    img_pil = Image.fromarray(frame)
+                                    draw = ImageDraw.Draw(img_pil)
+                                    draw.text((0, scaled[i].shape[1] + 10), result_names + " 출석", font=font, fill=(0, 255, 0, 0))
+                                    frame = np.array(img_pil)
+    
+                                    img_pil = Image.fromarray(frame)
+                                    draw = ImageDraw.Draw(img_pil)
+                                    draw.text((text_x, text_y),
+                                              result_names + " " + str(np.round(best_class_probabilities, 2)), font=font,
+                                              fill=(0, 255, 0, 0))
+                                    frame = np.array(img_pil)
+                                    '''
+                                    # cv2.putText(frame, result_names + " " + str(np.round(best_class_probabilities, 2)),
+                                    #             (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), thickness=1, lineType=2)
+                                else:
+                                    cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 0, 255),
+                                                  2)  # boxing face
 
-                                frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = scaled[i]
-                                img_pil = Image.fromarray(frame)
-                                draw = ImageDraw.Draw(img_pil)
-                                draw.text((0, scaled[i].shape[1] + 10), result_names + " 출석", font=font,
-                                          fill=(0, 255, 0, 0))
-                                frame = np.array(img_pil)
+                                    img_pil = Image.fromarray(frame)
+                                    draw = ImageDraw.Draw(img_pil)
+                                    # draw.text((text_x, text_y), result_names + " " + str(np.round(best_class_probabilities, 2)), font=font, fill=(0, 0, 255, 0))
+                                    frame = np.array(img_pil)
 
-                                img_pil = Image.fromarray(frame)
-                                draw = ImageDraw.Draw(img_pil)
-                                draw.text((text_x, text_y),
-                                          result_names + " " + str(np.round(best_class_probabilities, 2)), font=font,
-                                          fill=(0, 255, 0, 0))
-                                frame = np.array(img_pil)
+                                    # cv2.putText(frame, result_names + " " + str(np.round(best_class_probabilities, 2)),
+                                    #             (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), thickness=1, lineType=2)
+                                # else:
+                                #     result_names = 'unknown'
+                                #     Human_hash['unknown'] = [False, 0]
+                                #     Human_count['unknown'] = 0
 
-                                # cv2.putText(frame, result_names + " " + str(np.round(best_class_probabilities, 2)),
-                                #             (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), thickness=1, lineType=2)
-                            else:
-                                cv2.rectangle(frame, (bb[i][0], bb[i][1]), (bb[i][2], bb[i][3]), (0, 0, 255),
-                                              2)  # boxing face
+                                # print(result_names)
 
-                                img_pil = Image.fromarray(frame)
-                                draw = ImageDraw.Draw(img_pil)
-                                # draw.text((text_x, text_y), result_names + " " + str(np.round(best_class_probabilities, 2)), font=font, fill=(0, 0, 255, 0))
-                                frame = np.array(img_pil)
+                                chk_name.append(result_names)
+                            for x in chk_name:
+                                tmp_arr[x] = True
 
-                                # cv2.putText(frame, result_names + " " + str(np.round(best_class_probabilities, 2)),
-                                #             (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), thickness=1, lineType=2)
-                            # else:
-                            #     result_names = 'unknown'
-                            #     Human_hash['unknown'] = [False, 0]
-                            #     Human_count['unknown'] = 0
-
-                            # print(result_names)
-
-                            chk_name.append(result_names)
-                        for x in chk_name:
-                            tmp_arr[x] = True
-
-                        for key, val in tmp_arr.items():
-                            if Human_hash[key][0] is True:
-                                continue
-                            if val is True:
-                                Human_count[key] += 1
-                                if Human_count[key] == CHECK_POINT:
-                                    now = time.localtime()
-                                    s = "%04d/%02d/%02d_%02d:%02d:%02d" % (
-                                    now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
-                                    Human_hash[key] = [True, s]
-                                    make_file(Human_hash)
-                            else:
-                                Human_count[key] = 0
+                            for key, val in tmp_arr.items():
+                                if Human_hash[key][0] is True:
+                                    continue
+                                if val is True:
+                                    Human_count[key] += 1
+                                    if Human_count[key] == CHECK_POINT:
+                                        now = time.localtime()
+                                        s = "%04d/%02d/%02d_%02d:%02d:%02d" % (
+                                        now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
+                                        Human_hash[key] = [True, s]
+                                        make_file(Human_hash)
+                                else:
+                                    Human_count[key] = 0
 
 
-                    else:
-                        print('Unable to align')
+                        else:
+                            print('Unable to align')
 
-                sec = curTime - prevTime
-                prevTime = curTime
-                fps = 1 / (sec)
-                str_t = 'FPS: %2.3f' % fps
-                text_fps_x = len(frame[0]) - 150
-                text_fps_y = 20
-                cv2.putText(frame, str_t, (text_fps_x, text_fps_y),
-                            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), thickness=1, lineType=2)
-                # c+=1
-                now = time.localtime()
-                s = "%04d%02d%02d_%02d:%02d:%02d" % (
-                now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
-                cv2.putText(frame, s, (0, frame.shape[0] - 10),
-                            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), thickness=1, lineType=2)
+                    sec = curTime - prevTime
+                    prevTime = curTime
+                    fps = 1 / (sec)
+                    str_t = 'FPS: %2.3f' % fps
+                    text_fps_x = len(frame[0]) - 150
+                    text_fps_y = 20
+                    cv2.putText(frame, str_t, (text_fps_x, text_fps_y),
+                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), thickness=1, lineType=2)
+                    # c+=1
+                    now = time.localtime()
+                    s = "%04d%02d%02d_%02d:%02d:%02d" % (
+                    now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
+                    cv2.putText(frame, s, (0, frame.shape[0] - 10),
+                                cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), thickness=1, lineType=2)
 
-                cv2.imshow('Video', frame)
-                last_frame = frame
+                    cv2.imshow('Video', frame)
+                    last_frame = frame
+                    if VIDEO_SAVE:
+                        out.write(frame)
+                    k = cv2.waitKey(1)
+                    if k & 0xFF == ord('q'):
+                        break
+                    elif k & 0xFF == ord('a'):
+                        pass
                 if VIDEO_SAVE:
-                    out.write(frame)
-                k = cv2.waitKey(1)
+                    out.release()
+                result_name = format(max(RESULT, key=RESULT.count))
+                result_path = os.path.join(PATH.DATA_PATH, result_name)
+                result_img = os.listdir(result_path)[0]
+                last_frame[scaled[i].shape[1]:scaled[i].shape[1]*2, 0:scaled[i].shape[0]] = cv2.imread(os.path.join(result_path, result_img))
+                last_frame[0:scaled[i].shape[0], 0:scaled[i].shape[1]] = last
+                img_pil = Image.fromarray(last_frame)
+                draw = ImageDraw.Draw(img_pil)
+                result_name = result_name.split('_')
+                res = []
+                for ch in result_name:
+                    if not ch.isdigit():
+                        res.append(str(ch) + " ")
+                res = ''.join(res)
+                draw.text((10, 400), "인식 결과 : {}".format(res), font=font, fill=(0, 250, 200, 0))
+                draw.text((200, 10), "Q : 나가기, R : 재시작", font=font, fill=(0, 250, 200, 0))
+                last_frame = np.array(img_pil)
+                cv2.imshow('Video', last_frame)
+                k = cv2.waitKey(0)
                 if k & 0xFF == ord('q'):
-                    break
-                elif k & 0xFF == ord('a'):
+                    flag = False
                     pass
-            if VIDEO_SAVE:
-                out.release()
-            img_pil = Image.fromarray(last_frame)
-            draw = ImageDraw.Draw(img_pil)
-            draw.text((10, 10), "Q를 누르면 종료됩니다.", font=font, fill=(0, 255, 0, 0))
-            last_frame = np.array(img_pil)
-            cv2.imshow('Video', last_frame)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
-                pass
-            cv2.destroyAllWindows()
+                elif k & 0xFF == ord('r'):
+                    flag = True
+                cv2.destroyAllWindows()
 
             video_capture.release()
 
